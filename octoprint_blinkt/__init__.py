@@ -2,8 +2,13 @@
 from __future__ import absolute_import, division
 
 from blinkt import set_pixel, set_brightness, show, clear, set_all
-import colorlover as cl
 
+
+import colorsys
+
+import time
+
+import math
 
 import octoprint.plugin
 
@@ -15,7 +20,7 @@ class BlinktPlugin(octoprint.plugin.ProgressPlugin, octoprint.plugin.EventHandle
 
         if event == "CaptureStart":
             clear()
-            set_all(255, 255, 255, 1.0)
+            set_all(255, 255, 255, 0.1)
             show()
 
         if event == "CaptureDone":
@@ -38,17 +43,23 @@ class BlinktPlugin(octoprint.plugin.ProgressPlugin, octoprint.plugin.EventHandle
     def _set_progress(self, progress):
         clear()
 
-        colors = cl.to_numeric( cl.scales['8']['div']['RdYlGn'] )
+        pulse = round(math.sin(math.radians(time.time()/1000)),1)
+        if pulse < 0:
+    	pulse = 0-pulse
 
-        ledNum = int(round((progress / 100) * 7))
 
-        for i in range(0, ledNum):
-            self._blinkt_r = int(colors[ledNum][0])
-            self._blinkt_g = int(colors[ledNum][1])
-            self._blinkt_b = int(colors[ledNum][2])
+        set_brightness(pulse/3)
 
-            self._logger.info("Setting " + str(i) + " to " + str(self._blinkt_r) + "," + str(self._blinkt_g) + "," + str(self._blinkt_b))
-            set_pixel(i, self._blinkt_r, self._blinkt_g, self._blinkt_b, 0.5)
+        spacing = 360.0 / 16.0
+        hue = 0
+        numpixels = 9
+
+        hue = int(progress * 100) % 360
+        for x in range(int((Progress/100)*numpixels)):
+            offset = x * spacing
+            h = ((hue + offset) % 360) / 360.0
+            r, g, b = [int(c * 255) for c in colorsys.hsv_to_rgb(h, 1.0, 1.0)]
+            set_pixel(x, r, g, b)
 
         show()
 
