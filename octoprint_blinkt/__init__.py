@@ -3,13 +3,7 @@ from __future__ import absolute_import, division
 
 from blinkt import set_pixel, set_brightness, show, clear, set_all
 
-import colorsys
-
-import time
-
-import math
-
-import octoprint.plugin
+import colorsys, time, math, octoprint.plugin
 
 class BlinktPlugin(octoprint.plugin.ProgressPlugin, octoprint.plugin.EventHandlerPlugin):
     def on_event(self, event, payload):
@@ -28,6 +22,15 @@ class BlinktPlugin(octoprint.plugin.ProgressPlugin, octoprint.plugin.EventHandle
             show()
 
         if event == "PrintDone":
+            clear()
+            for x in range(120):
+                for n in range(8):
+                    if x % 2 == 0:
+                        set_pixel(n,0,0,0)
+                    if x % 2 == 1:
+                        set_pixel(n,0,255,0)
+                show()
+                time.sleep(0.05)
             clear()
             show()
 
@@ -49,10 +52,10 @@ class BlinktPlugin(octoprint.plugin.ProgressPlugin, octoprint.plugin.EventHandle
 
         spacing = 360.0 / 16.0
         hue = 0
-        numpixels = 9
+        numpixels = 8
 
         hue = int(progress * 100) % 360
-        for x in range(int((progress/100)*numpixels)):
+        for x in range(int(round(((progress/100)*numpixels),0))):
             offset = x * spacing
             h = ((hue + offset) % 360) / 360.0
             r, g, b = [int(c * 255) for c in colorsys.hsv_to_rgb(h, 1.0, 1.0)]
